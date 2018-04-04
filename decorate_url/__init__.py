@@ -1,7 +1,9 @@
 __author__ = 'Vorujack'
 
 from django.core.exceptions import ImproperlyConfigured
-from django.core.urlresolvers import RegexURLResolver, Resolver404, ResolverMatch, RegexURLPattern, get_callable
+from django.urls import URLPattern as RegexURLPattern, URLResolver as RegexURLResolver, ResolverMatch, Resolver404, \
+    get_callable
+from django.urls.resolvers import RegexPattern
 from django.utils.encoding import force_text
 from django.utils import six
 
@@ -21,13 +23,15 @@ def decorated_url(regex, view, kwargs=None, name=None, prefix='', wrap=None):
 
 class DecorateRegexURLResolver(RegexURLResolver):
     def __init__(self, regex, urlconf_name, default_kwargs=None, app_name=None, namespace=None, wrap=None):
-        super(DecorateRegexURLResolver, self).__init__(regex, urlconf_name, default_kwargs, app_name, namespace)
+        regex_pattern = RegexPattern(regex)
+        super(DecorateRegexURLResolver, self).__init__(regex_pattern, urlconf_name, default_kwargs, app_name, namespace)
         if isinstance(wrap, (tuple, list)):
             self.wrap = wrap
         elif wrap:
             self.wrap = [wrap]
         else:
             self.wrap = []
+        self.regex = regex_pattern.regex
 
     def resolve(self, path):
         path = force_text(path)
